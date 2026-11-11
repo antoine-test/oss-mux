@@ -217,6 +217,7 @@ func (r *Route) Name(name string) *Route {
 	if r.err == nil {
 		r.name = name
 		r.namedRoutes[name] = r
+		InvalidateURLCache(name)
 	}
 	return r
 }
