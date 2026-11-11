@@ -171,6 +171,19 @@ func (r *Route) GetMetadataValueOr(key any, fallbackValue any) any {
 	return value
 }
 
+// GetMetadataString returns the metadata value stored under key as a string.
+// The boolean is false when the key is missing or the value is not a string.
+func (r *Route) GetMetadataString(key any) (string, bool) {
+	value, ok := r.metadata[key].(string)
+	return value, ok
+}
+
+// DeleteMetadata removes key from the route metadata.
+func (r *Route) DeleteMetadata(key any) *Route {
+	delete(r.metadata, key)
+	return r
+}
+
 // Handler --------------------------------------------------------------------
 
 // Handler sets a handler for the route.

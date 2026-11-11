@@ -152,3 +152,26 @@ func TestRouteMetadata(t *testing.T) {
 		router.ServeHTTP(rw, req)
 	})
 }
+
+func TestRouteGetMetadataString(t *testing.T) {
+	route := NewRouter().NewRoute().Metadata("owner", "billing").Metadata("limit", 10)
+
+	if got, ok := route.GetMetadataString("owner"); !ok || got != "billing" {
+		t.Errorf("expected (billing, true), got (%q, %v)", got, ok)
+	}
+	if got, ok := route.GetMetadataString("limit"); ok || got != "" {
+		t.Errorf("expected (\"\", false) for a non-string value, got (%q, %v)", got, ok)
+	}
+	if _, ok := route.GetMetadataString("missing"); ok {
+		t.Error("expected missing key to report false")
+	}
+}
+
+func TestRouteDeleteMetadata(t *testing.T) {
+	route := NewRouter().NewRoute().Metadata("owner", "billing")
+	route.DeleteMetadata("owner").DeleteMetadata("unknown")
+
+	if route.MetadataContains("owner") {
+		t.Error("expected owner to be deleted")
+	}
+}
