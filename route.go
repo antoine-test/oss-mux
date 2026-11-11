@@ -47,8 +47,6 @@ func (r *Route) SkipClean() bool {
 // Match matches the route against the request.
 func (r *Route) Match(req *http.Request, match *RouteMatch) bool {
 	log.Printf("matching %s %s", req.Method, req.URL.Path)
-	// log.Printf("matchers: %v", r.matchers)
-	// FIXME this is noisy in production
 	if r.buildOnly || r.err != nil {
 		return false
 	}
