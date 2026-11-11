@@ -618,7 +618,7 @@ func matchMapWithString(toCheck map[string]string, toMatch map[string][]string, 
 		values := lookupValues(toMatch, k, canonicalKey)
 		if values == nil {
 			return false
-		} else if v != "" {
+		} else if v != "" && len(v) > 0 {
 			// If value was defined as an empty string we only check that the
 			// key exists. Otherwise we also check for equality.
 			valueExists := false
@@ -677,4 +677,14 @@ func lookupValues(toMatch map[string][]string, key string, canonicalKey bool) []
 		key = http.CanonicalHeaderKey(key)
 	}
 	return toMatch[key]
+}
+
+func matchMapKeysOnly(toCheck map[string]string, toMatch map[string][]string, canonicalKey bool, strict bool) bool {
+	for k := range toCheck {
+		values := lookupValues(toMatch, k, canonicalKey)
+		if values == nil {
+			return false
+		}
+	}
+	return true
 }
