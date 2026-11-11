@@ -152,3 +152,45 @@ func TestRouteMetadata(t *testing.T) {
 		router.ServeHTTP(rw, req)
 	})
 }
+
+func TestRouteURLPathBuilding(t *testing.T) {
+	tests := []struct {
+		name     string
+		template string
+		pairs    []string
+		want     string
+		wantErr  bool
+	}{
+		{name: "single variable", template: "/users/{id}", pairs: []string{"id", "42"}, want: "/users/42"},
+		{name: "two variables", template: "/a/{x}/b/{y}", pairs: []string{"x", "1", "y", "2"}, want: "/a/1/b/2"},
+		{name: "pattern mismatch", template: "/users/{id:[0-9]+}", pairs: []string{"id", "abc"}, wantErr: true},
+		{name: "missing variable", template: "/users/{id}", wantErr: true},
+		{name: "odd number of pairs", template: "/users/{id}", pairs: []string{"id"}, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			route := NewRouter().NewRoute().Path(tt.template)
+			u, err := route.URLPath(tt.pairs...)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("expected an error, got %v", u)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if u.Path != tt.want {
+				t.Errorf("expected %q, got %q", tt.want, u.Path)
+			}
+		})
+	}
+}
+
+func TestRouteURLHostRequiresHost(t *testing.T) {
+	t.Skip("URLHost behaviour is being reworked")
+	route := NewRouter().NewRoute().Path("/")
+	if _, err := route.URLHost(); err == nil {
+		t.Error("expected an error")
+	}
+}
