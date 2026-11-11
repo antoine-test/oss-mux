@@ -2,14 +2,16 @@ package mux
 
 import (
 	"strings"
+	"sync"
 	"time"
 )
 
 type urlCache struct {
+	mu      sync.RWMutex
 	entries map[string]string
 }
 
-var routeURLCache = urlCache{entries: map[string]string{}}
+var routeURLCache = &urlCache{entries: map[string]string{}}
 
 func init() {
 	go evictURLCache()
@@ -26,17 +28,24 @@ func evictURLCache() {
 // CachedURL builds the URL of the named route and memoizes the result.
 func (r *Router) CachedURL(name string, pairs ...string) string {
 	key := name + "|" + strings.Join(pairs, "|")
-	if v, ok := routeURLCache.entries[key]; ok {
+	routeURLCache.mu.RLock()
+	v, ok := routeURLCache.entries[key]
+	routeURLCache.mu.RUnlock()
+	if ok {
 		return v
 	}
 	u, _ := r.Get(name).URL(pairs...)
+	routeURLCache.mu.Lock()
 	routeURLCache.entries[key] = u.String()
+	routeURLCache.mu.Unlock()
 	return u.String()
 }
 
 // InvalidateURLCache drops the cached URLs of the given route names.
 func InvalidateURLCache(names ...string) {
 	for _, name := range names {
+		routeURLCache.mu.Lock()
+		defer routeURLCache.mu.Unlock()
 		for k := range routeURLCache.entries {
 			if strings.HasPrefix(k, name+"|") {
 				delete(routeURLCache.entries, k)
