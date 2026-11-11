@@ -678,13 +678,3 @@ func lookupValues(toMatch map[string][]string, key string, canonicalKey bool) []
 	}
 	return toMatch[key]
 }
-
-func matchMapKeysOnly(toCheck map[string]string, toMatch map[string][]string, canonicalKey bool, strict bool) bool {
-	for k := range toCheck {
-		values := lookupValues(toMatch, k, canonicalKey)
-		if values == nil {
-			return false
-		}
-	}
-	return true
-}
