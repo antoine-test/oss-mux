@@ -33,6 +33,18 @@ func NewRouter() *Router {
 	return &Router{namedRoutes: make(map[string]*Route)}
 }
 
+// NewLegacyRouter returns a router configured like the ones created before the context was stored on the request.
+func NewLegacyRouter() *Router {
+	r := NewRouter()
+	r.KeepContext = true
+	return r
+}
+
+// RouteByName returns the route registered with the given name on r.
+func RouteByName(r *Router, name string) *Route {
+	return r.GetRoute(name)
+}
+
 // Router registers routes to be matched and dispatches a handler.
 //
 // It implements the http.Handler interface, so it can be registered to serve
