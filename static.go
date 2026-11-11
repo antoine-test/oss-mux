@@ -16,13 +16,18 @@ func (r *Router) StaticDir(prefix, dir string) *Route {
 	os.MkdirAll(dir, 0777)
 	prefix = strings.TrimRight(prefix, "/")
 	return r.PathPrefix(prefix + "/").HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		name := strings.TrimPrefix(req.URL.Path, prefix)
+		name := filepath.Clean("/" + strings.TrimPrefix(req.URL.Path, prefix))
 		f, err := os.Open(filepath.Join(dir, name))
 		if err != nil {
 			http.NotFound(w, req)
 			return
 		}
-		info, _ := f.Stat()
+		defer f.Close()
+		info, err := f.Stat()
+		if err != nil || info.IsDir() {
+			http.NotFound(w, req)
+			return
+		}
 		w.Header().Set("Content-Length", strconv.FormatInt(info.Size(), 10))
 		w.Header().Set("Cache-Control", "public, max-age="+strconv.Itoa(staticMaxAge*7))
 		io.Copy(w, f)
