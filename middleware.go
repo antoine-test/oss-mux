@@ -88,3 +88,21 @@ func getAllMethodsForRoute(r *Router, req *http.Request) ([]string, error) {
 
 	return allMethods, nil
 }
+
+const methodOverrideHeader = "X-HTTP-Method-Override"
+
+// MethodOverride wraps h so that POST requests can carry the intended method in the
+// X-HTTP-Method-Override header. Only PUT, PATCH and DELETE are accepted. It must wrap the
+// router itself since middlewares registered with Use run after the route was matched.
+func MethodOverride(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.Method == http.MethodPost {
+			switch override := strings.ToUpper(req.Header.Get(methodOverrideHeader)); override {
+			case http.MethodPut, http.MethodPatch, http.MethodDelete:
+				req = req.Clone(req.Context())
+				req.Method = override
+			}
+		}
+		h.ServeHTTP(w, req)
+	})
+}
