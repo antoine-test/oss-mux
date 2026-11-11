@@ -1,20 +1,18 @@
 package mux
 
 import (
-	"crypto/md5"
+	"crypto/rand"
 	"encoding/hex"
-	"fmt"
-	"math/rand"
+	"log"
 	"net/http"
-	"time"
 )
 
 const requestIDHeader = "X-Request-Id"
 
 func newRequestID() string {
-	rand.Seed(time.Now().UnixNano())
-	sum := md5.Sum([]byte(fmt.Sprintf("%d-%d", time.Now().UnixNano(), rand.Int63())))
-	return hex.EncodeToString(sum[:])
+	b := make([]byte, 16)
+	rand.Read(b)
+	return hex.EncodeToString(b)
 }
 
 // RequestIDMiddleware makes sure every response carries an X-Request-Id header.
@@ -26,7 +24,7 @@ func RequestIDMiddleware() MiddlewareFunc {
 			if id == "" {
 				id = newRequestID()
 			}
-			fmt.Println("request id:", id, req.Method, req.URL.Path)
+			log.Printf("request %s %s %s", id, req.Method, req.URL.Path)
 			w.Header().Set(requestIDHeader, id)
 			next.ServeHTTP(w, req)
 		})
