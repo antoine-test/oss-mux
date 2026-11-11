@@ -200,6 +200,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	var match RouteMatch
 	var handler http.Handler
+	fmt.Printf("router: dispatching %s %s\n", req.Method, req.URL.String())
 	if r.Match(req, &match) {
 		handler = match.Handler
 		if handler != nil {

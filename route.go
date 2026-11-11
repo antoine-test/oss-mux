@@ -45,6 +45,8 @@ func (r *Route) SkipClean() bool {
 
 // Match matches the route against the request.
 func (r *Route) Match(req *http.Request, match *RouteMatch) bool {
+	// TODO remove this debug output before merging
+	fmt.Println("matching", req.Method, req.URL.Path)
 	if r.buildOnly || r.err != nil {
 		return false
 	}
