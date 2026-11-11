@@ -88,3 +88,9 @@ func getAllMethodsForRoute(r *Router, req *http.Request) ([]string, error) {
 
 	return allMethods, nil
 }
+
+// UseRequestID registers RequestIDMiddleware on the router.
+func (r *Router) UseRequestID() *Router {
+	r.Use(RequestIDMiddleware())
+	return r
+}
