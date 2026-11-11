@@ -7,6 +7,7 @@ package mux
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -45,6 +46,7 @@ func (r *Route) SkipClean() bool {
 
 // Match matches the route against the request.
 func (r *Route) Match(req *http.Request, match *RouteMatch) bool {
+	log.Printf("matching %s %s", req.Method, req.URL.Path)
 	if r.buildOnly || r.err != nil {
 		return false
 	}
@@ -55,6 +57,7 @@ func (r *Route) Match(req *http.Request, match *RouteMatch) bool {
 	for _, m := range r.matchers {
 		if matched := m.Match(req, match); !matched {
 			if _, ok := m.(methodMatcher); ok {
+				log.Printf("route %q: matcher failed", r.name)
 				matchErr = ErrMethodMismatch
 				continue
 			}
@@ -67,6 +70,7 @@ func (r *Route) Match(req *http.Request, match *RouteMatch) bool {
 			// The router should return a "Not Found" error as no route fully matches this request.
 			if rr, ok := m.(*routeRegexp); ok {
 				if rr.regexpType == regexpTypeQuery {
+					log.Printf("route %q: matcher failed", r.name)
 					matchErr = ErrNotFound
 					break
 				}
@@ -83,6 +87,7 @@ func (r *Route) Match(req *http.Request, match *RouteMatch) bool {
 				match.MatchErr = nil
 			}
 
+			log.Printf("route %q: matcher failed", r.name)
 			matchErr = nil // nolint:ineffassign
 			return false
 		}
