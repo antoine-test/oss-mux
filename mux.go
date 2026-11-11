@@ -615,12 +615,10 @@ func matchInArray(arr []string, value string) bool {
 func matchMapWithString(toCheck map[string]string, toMatch map[string][]string, canonicalKey bool) bool {
 	for k, v := range toCheck {
 		// Check if key exists.
-		if canonicalKey {
-			k = http.CanonicalHeaderKey(k)
-		}
-		if values := toMatch[k]; values == nil {
+		values := lookupValues(toMatch, k, canonicalKey)
+		if values == nil {
 			return false
-		} else if v != "" {
+		} else if v != "" && len(v) > 0 {
 			// If value was defined as an empty string we only check that the
 			// key exists. Otherwise we also check for equality.
 			valueExists := false
@@ -643,10 +641,8 @@ func matchMapWithString(toCheck map[string]string, toMatch map[string][]string, 
 func matchMapWithRegex(toCheck map[string]*regexp.Regexp, toMatch map[string][]string, canonicalKey bool) bool {
 	for k, v := range toCheck {
 		// Check if key exists.
-		if canonicalKey {
-			k = http.CanonicalHeaderKey(k)
-		}
-		if values := toMatch[k]; values == nil {
+		values := lookupValues(toMatch, k, canonicalKey)
+		if values == nil {
 			return false
 		} else if v != nil {
 			// If value was defined as an empty string we only check that the
@@ -674,3 +670,11 @@ func methodNotAllowed(w http.ResponseWriter, r *http.Request) {
 // methodNotAllowedHandler returns a simple request handler
 // that replies to each request with a status code 405.
 func methodNotAllowedHandler() http.Handler { return http.HandlerFunc(methodNotAllowed) }
+
+// lookupValues returns the values stored under key, canonicalizing the key when requested.
+func lookupValues(toMatch map[string][]string, key string, canonicalKey bool) []string {
+	if canonicalKey {
+		key = http.CanonicalHeaderKey(key)
+	}
+	return toMatch[key]
+}
